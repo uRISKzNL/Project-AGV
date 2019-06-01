@@ -17,9 +17,10 @@ const int trigPinR;
 const int echoPinR;
 const int ledrood = 5;
 const int ledgroen = 6;
-
+long prevtijd_c=0;
 #define afstand_max 3000
-
+const int minimum_distance = 40;
+const int maximum_distance = 140;
 
 NewPing voor(trigPinV, echoPinV, afstand_max);
 NewPing links(trigPinL, echoPinL, afstand_max);
@@ -34,7 +35,7 @@ float afstand_rechts;
 long tijd_rechts;
 
 int pos = 0;   
-int ledState = LOW;           
+int ledState_red = LOW;           
 unsigned long previousMillis = 0;        
 const long interval_red = 100; 
 const long interval_US_servo = 20;
@@ -100,8 +101,15 @@ if (start_stop >= 700 && toggle_switch == 1){
                 afstand_voorF();
                 afstand_rechtsF();
                 afstand_linksF();
-                ledknipper();  
-                servoUS();           
+                ledknipper_red();  
+                servoUS(); 
+
+                if (afstand_voor < 9 && afstand_voor > 3  ){
+                toestand = 'c';
+                break;
+                }
+
+                
                 }                   
           
           } break;
@@ -109,13 +117,25 @@ if (start_stop >= 700 && toggle_switch == 1){
         
 
       case 'c':
-          controle(); 
+          controle(pos); 
           break;
- 
 
+      case 'w': 
+      long ledtijd = millis();
+      ledknipper_red;
+      if (ledtijd > 4000){
+      toestand = 'c';
+      }
+      break;
+      
+ 
+// switch case
+    }
+// knoppen
 }
 
-  }}
+// loop
+}
 
 
 
@@ -143,7 +163,7 @@ Serial.println(afstand_rechts);
 }
 
 
-void ledknipper(){
+void ledknipper_red(){
 
 
 unsigned long currentMillis = millis();
@@ -151,45 +171,71 @@ unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= interval_red) {
    
     previousMillis = currentMillis;
-    if (ledState == LOW) {
-      ledState = HIGH;
+    if (ledState_red == LOW) {
+      ledState_red = HIGH;
     } else {
-      ledState = LOW;
+      ledState_red = LOW;
     }
-    digitalWrite(6, ledState);
+    digitalWrite(6, ledState_red);
     }
 }
 
-void controle(){
+void controle(int pos_c){
   
 
-// motoren uit
-//float compdistance_voor;
-//distance_voor = compdistance_voor;
+motoren_uit();
+float compafstand_voor;
+int pos_c2;
+afstand_voor = compafstand_voor;
+pos_c =  pos_c2;
+int mem0;
+int mem1;
 
-  
- //for (pos = pos; pos <= 110; pos += 1) { 
-  
-      //distance_voor1();
-      //myservo.write(pos);              
-      //delay(30);
-      
-      
-      //if (distance_voor - compdistance_voor > 1.5){
+long tijd_c = millis();
 
-      //digitalWrite(5,HIGH); //waarschuwing  
-      //}
-      //}  
-     //myservo.write(90);
-     //toestand = 'r';              
-         
-     
-     
-     }
+if (tijd_c-prevtijd_c > interval_US_servo){ 
+
+if ((afstand_voor - compafstand_voor) >= 1.5 && mem0 == 1 && mem1 == 1){
+toestand = 'w';
+mem0=0;
+mem1=0;
+} 
+
+
+if (pos >= maximum_distance){
+  
+    servo_memory = 1;
+    mem1=1;
+}
+if (pos <= minimum_distance){
+  
+    servo_memory = 0;
+    mem0=1;
+
+}
+
+
+if (servo_memory == 1 ){
+    prevtijd_c = tijd_c;
+    pos--;
+    myservo.write(pos);
+}
+
+if (servo_memory == 0){
+    prevtijd_c = tijd_c;
+    pos++;
+    myservo.write(pos);
+    
+
+}}
+
+}
 
 
    
 void TOFdistance(){
+
+
 }
 
 void motor_rechts(){
@@ -218,11 +264,11 @@ long tijd = millis();
 
 if (tijd-prevtijd > interval_US_servo){ 
 
-if (pos >= 179){
+if (pos >= maximum_distance){
   
     servo_memory = 1;
 }
-if (pos <= 0){
+if (pos <= minimum_distance){
   
     servo_memory = 0;
 }
@@ -243,7 +289,13 @@ if (servo_memory == 0){
 }}
 
 }
-      
+
+void motoren_uit(){
+digitalWrite(stepPinL,LOW); 
+digitalWrite(stepPinR,LOW); 
+}
+
+
   
 
 
