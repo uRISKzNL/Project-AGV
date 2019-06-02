@@ -5,6 +5,9 @@
 VL53L0X sensor;
 Servo myservo;
 
+const int z1 = 9;
+const int z2 = 9;
+const int z3 = 9;
 const int stepPinR = 3; 
 const int dirPinR = 4; 
 const int stepPinL = 11; 
@@ -85,8 +88,9 @@ if (start_stop >= 700 && toggle_switch == 1){
     switch (toestand){
       
     case 'r': 
-
-      if (afstand_voor < 9 && afstand_voor > 3  ){
+      afstand_voorF();
+      
+      if (afstand_voor < z1 && afstand_voor > 3  ){
           toestand = 'c';
           break;
           }
@@ -108,7 +112,10 @@ if (start_stop >= 700 && toggle_switch == 1){
                 toestand = 'c';
                 break;
                 }
-
+                //if (afstand_voor < 100 &&  ){
+                 // toestand = 'b';
+                //}
+                
                 
                 }                   
           
@@ -117,18 +124,24 @@ if (start_stop >= 700 && toggle_switch == 1){
         
 
       case 'c':
-          controle(pos); 
+          toestand = controle(pos,toestand); 
           break;
 
       case 'w': 
-      long ledtijd = millis();
-      ledknipper_red;
-      if (ledtijd > 4000){
-      toestand = 'c';
-      }
+      waarschuwen();
       break;
       
- 
+      case 'b':
+     
+
+      if (afstand_links > z1  && afstand_rechts < z2 && afstand_voor < z1 ){ // bocht 1
+      bocht_links_90();
+      toestand = 'r';
+      }
+      
+       
+
+      
 // switch case
     }
 // knoppen
@@ -180,7 +193,7 @@ unsigned long currentMillis = millis();
     }
 }
 
-void controle(int pos_c){
+char controle(int pos_c, char toestand_c){
   
 
 motoren_uit();
@@ -188,48 +201,57 @@ float compafstand_voor;
 int pos_c2;
 afstand_voor = compafstand_voor;
 pos_c =  pos_c2;
-int mem0;
-int mem1;
+int mem0 = 2;
+int mem1 = 2;
 
 long tijd_c = millis();
 
 if (tijd_c-prevtijd_c > interval_US_servo){ 
 
-if ((afstand_voor - compafstand_voor) >= 1.5 && mem0 == 1 && mem1 == 1){
-toestand = 'w';
-mem0=0;
-mem1=0;
-} 
+        if ((afstand_voor - compafstand_voor) >= 1.5 && mem0 == 1 && mem1 == 1){
+        toestand_c = 'w';
+        mem0=0;
+        mem1=0;
+        return toestand_c;
+        exit(1);
+        } 
+        
+        if ((afstand_voor - compafstand_voor) < 1.5 && mem0 == 1 && mem1 == 1){
+        toestand_c = 'b';
+        mem0=0;
+        mem1=0;
+        return toestand_c;
+        exit(1);
+        } 
 
-
-if (pos >= maximum_distance){
-  
-    servo_memory = 1;
-    mem1=1;
-}
-if (pos <= minimum_distance){
-  
-    servo_memory = 0;
-    mem0=1;
-
-}
-
-
-if (servo_memory == 1 ){
-    prevtijd_c = tijd_c;
-    pos--;
-    myservo.write(pos);
-}
-
-if (servo_memory == 0){
-    prevtijd_c = tijd_c;
-    pos++;
-    myservo.write(pos);
-    
-
-}}
-
-}
+        if (pos_c >= maximum_distance){
+          
+            servo_memory = 1;
+            mem1=1;
+        }
+        if (pos_c <= minimum_distance){
+          
+            servo_memory = 0;
+            mem0=1;
+        
+        }
+        
+        
+        if (servo_memory == 1 ){
+            prevtijd_c = tijd_c;
+            pos_c--;
+            myservo.write(pos_c);
+        }
+        
+        if (servo_memory == 0){
+            prevtijd_c = tijd_c;
+            pos_c++;
+            myservo.write(pos_c);
+            
+        
+        }}
+        
+        }
 
 
    
@@ -295,8 +317,21 @@ digitalWrite(stepPinL,LOW);
 digitalWrite(stepPinR,LOW); 
 }
 
+void bocht_links_90(){
 
+ 
+}
+
+void bocht_rechts_90(){
   
+} 
 
+void waarschuwen(){
+ long ledtijd = millis();
+      ledknipper_red;
+      if (ledtijd > 4000){
+      toestand = 'c';
+      }
+}
 
 
