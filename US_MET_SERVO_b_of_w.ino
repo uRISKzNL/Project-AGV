@@ -73,6 +73,12 @@ pinMode(dirPinR,OUTPUT);
 }
 
 void loop() {
+
+
+for (int x = 60; x < 110; x++){
+
+myservo.write(x);              
+
 tijd_voor = voor.ping_median(iterations);
 afstand_voor = (tijd_voor /2) * 0.034;
 Serial.println("   ");
@@ -80,59 +86,28 @@ Serial.println("   ");
 Serial.println(afstand_voor);
 
 if (afstand_voor < 9 && afstand_voor > 5){
-myservo.write(90); 
-delay(1000);             
-
-
-// motoren uit
-if (teller == 0){
-compdistance_voor = afstand_voor ;
-teller = 1;
+//controle();
+delay(1000);
+}
+ delay(15);
 }
 
- for (pos = 70; pos <= 110; pos += 1) { 
-      afstand_voorF();
-      myservo.write(pos);              
-      delay(15);
-      
-      
-      
-      if (grootstemeetwaarde < afstand_voor){
-        grootstemeetwaarde = afstand_voor;
-      }
- }
-      Serial.print(" gmw "); 
-      Serial.print(grootstemeetwaarde);
-      Serial.print("\t"); 
-      Serial.print("comp: "); 
-      Serial.print(compdistance_voor);
-      Serial.print("\t   "); 
-      Serial.print(" afstand voor "); 
-      Serial.print(afstand_voor);
-      teller=0;
-      
-      if ((grootstemeetwaarde - compdistance_voor) > 0.8){
-      for(int x=0 ;x <6;x++){
-      digitalWrite(ledrood,HIGH);
-      delay(100);
-      digitalWrite(ledrood,LOW);
-      delay(100);
-     }
-     }
-       if ((grootstemeetwaarde - compdistance_voor) <= 0.8){
-      
-      for(int x=0; x <6;x++){
-      digitalWrite(ledgroen,HIGH);
-      delay(100);
-      digitalWrite(ledgroen,LOW);
-      delay(100);
-     }
-      
-      }
-      
-      delay(1000);}}
+for (int x = 110; x > 60; x--){
 
+myservo.write(x);              
 
+tijd_voor = voor.ping_median(iterations);
+afstand_voor = (tijd_voor /2) * 0.034;
+Serial.println("   ");
+
+Serial.println(afstand_voor);
+
+if (afstand_voor < 9 && afstand_voor > 5){
+  delay(1000);
+//controle();
+}
+ delay(15);
+}}
       
       
       
@@ -193,7 +168,61 @@ unsigned long currentMillis = millis();
     }}
 
       
-  
+void controle(){
+
+// motoren uit
+
+myservo.write(90); 
+delay(1000);             
+
+
+if (teller == 0){
+compdistance_voor = afstand_voor ;
+teller = 1;
+}
+
+ for (pos = 70; pos <= 110; pos += 1) { 
+      afstand_voorF();
+      myservo.write(pos);              
+      delay(15);
+      
+      
+      
+      if (grootstemeetwaarde < afstand_voor){
+        grootstemeetwaarde = afstand_voor;
+      }
+ }
+      Serial.print(" gmw "); 
+      Serial.print(grootstemeetwaarde);
+      Serial.print("\t"); 
+      Serial.print("comp: "); 
+      Serial.print(compdistance_voor);
+      Serial.print("\t   "); 
+      Serial.print(" afstand voor "); 
+      Serial.print(afstand_voor);
+      teller=0;
+      
+      if ((grootstemeetwaarde - compdistance_voor) > 0.8){
+      for(int x=0 ;x <6;x++){
+      digitalWrite(ledrood,HIGH);
+      delay(100);
+      digitalWrite(ledrood,LOW);
+      delay(100);
+     }
+     }
+       if ((grootstemeetwaarde - compdistance_voor) <= 0.8){
+      
+      for(int x=0; x <6;x++){
+      digitalWrite(ledgroen,HIGH);
+      delay(100);
+      digitalWrite(ledgroen,LOW);
+      delay(100);
+     }
+      
+      }
+      
+      delay(1000);}  
+
 
 
 
