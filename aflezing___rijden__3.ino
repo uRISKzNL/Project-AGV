@@ -40,11 +40,16 @@ const int stepPinL = 32; //36
 const int dirPinL = 28;  //38
 long teller=0;
 long teller1=0;
+long teller_c=0;
 char toestand = 'r';
 int pos = 40;
 long teller_TOF=0;
 const int ledrood = 40;
 const int ledgroen = 42;
+float compdistance_voor;
+float grootstemeetwaarde=0;
+int boom=0;
+int flag=0;
 void setup()
 {
   Serial.begin(9600);
@@ -82,6 +87,9 @@ pinMode(echoPinR, INPUT);
   pinMode(stepPinL,OUTPUT); 
  pinMode(dirPinL,OUTPUT);
  pinMode(ledgroen,OUTPUT);
+  pinMode(ledrood,OUTPUT);
+
+ 
 
 myservo.attach(46);
 
@@ -92,6 +100,9 @@ myservo.attach(46);
 void loop()
 {
 
+int modusswitch = digitalRead(31);
+int start_stop = digitalRead(26);
+
 switch( toestand){
 
   
@@ -99,7 +110,7 @@ case 'r' :
     teller++;
    teller1++;
    
-   if (pos >= 125){
+   if (pos >= 115){
    Servo_mem = 1;
    }
    if (pos <= 61){
@@ -120,6 +131,10 @@ case 'r' :
          cor_naarrechts();
   
     }
+
+    if (distanceV < 50 && distanceL > 80 && boom > 2){
+    bochtlinksom();  
+    }
   
     
 
@@ -131,6 +146,9 @@ case 'r' :
    
     if( teller1 == 2 && Servo_mem == 0 ){
         US_voor();
+        if (distanceV < 8.5 && distanceV > 2){
+          toestand = 'c';
+        }
          meet_TOF(toestand);
          pos = pos + 20;
          myservo.write(pos);
@@ -139,6 +157,9 @@ case 'r' :
     
       if ( teller1 == 2 && Servo_mem == 1 ){
           US_voor();
+          if (distanceV < 8.5 && distanceV > 2 ){
+          toestand = 'c';
+        }
           meet_TOF(toestand);
           pos = pos - 20;
           myservo.write(pos);
@@ -164,6 +185,9 @@ digitalWrite(dirPinL,LOW);
     digitalWrite(stepPinR,LOW);  
     delayMicroseconds(3350);
   }
+  boom++;
+
+  
 for (int x = 0 ; x <6; x++){
 digitalWrite(ledgroen,HIGH);
 delay(100);
@@ -178,12 +202,115 @@ toestand = 'r';
 
 break;
 
+case 'c':
+
+// motoren uit
+Serial.print("boebec");
+
+myservo.write(90); 
+delay(1000);             
+
+
+if (teller_c == 0){
+compdistance_voor = distanceV ;
+teller_c = 1;
+}
+
+ for (pos = 70; pos <= 105; pos += 1) { 
+      US_voor();
+      myservo.write(pos);              
+      delay(15);
+      
+      
+      
+      if (grootstemeetwaarde < distanceV){
+        grootstemeetwaarde = distanceV;
+      }
+ }
+      Serial.print(" gmw "); 
+      Serial.print(grootstemeetwaarde);
+      Serial.print("\t"); 
+      Serial.print("comp: "); 
+      Serial.print(compdistance_voor);
+      Serial.print("\t   "); 
+      Serial.print(" afstand voor "); 
+      Serial.print(distanceV);
+      teller=0;
+      
+      if ((grootstemeetwaarde- compdistance_voor) > 2.75){
+      for(int x=0 ;x <6;x++){
+      digitalWrite(ledrood,HIGH);
+      delay(100);
+      digitalWrite(ledrood,LOW);
+      delay(100);
+     }
+     }
+       if ((grootstemeetwaarde - compdistance_voor) <= 2.75){ // 3.15
+      
+      toestand = 'b';
+
+      break;//
+      
+      }
+      
+     
+      break;
+
+case 'b':
+      
+      
+      
+      //for(int x=0 ;x < 7 ;x++){
+      //digitalWrite(ledgroen,HIGH);
+      //delay(200);
+      //digitalWrite(ledgroen,LOW);
+      //delay(200);
+     //}
+  myservo.write(90);
+  US_voor();
+
+ if (distanceV > 5.5 && distanceL > 50 ){
+ digitalWrite(dirPinR,HIGH); 
+ digitalWrite(dirPinL,LOW); 
+
+
+  for(int x = 0; x < 50; x++) {    
   
-          }
+ if (distanceV > 5.5 && distanceL > 75){
+
+  
+ 
+   digitalWrite(stepPinR,HIGH); 
+   delayMicroseconds(3350);
+   digitalWrite(stepPinL,HIGH);
+   delayMicroseconds(1860);
+    
+    digitalWrite(stepPinL,LOW);  
+    delayMicroseconds(1660);
+
+
+    digitalWrite(stepPinR,LOW);  
+    delayMicroseconds(3350);
+  }}
+
+ if  (distanceV < 5.5 && distanceL > 75 && distanceV < 2){
+bochtlinksom();
+  
+ }
+
+ 
+      toestand = 'r';
+
+      
+      
+} break;
+
+}
+     }
           
           
           
-          }
+          
 
 
 
@@ -281,6 +408,51 @@ void rijden(){
     digitalWrite(stepPinR,LOW);  
     delayMicroseconds(3350);
   }
+}
+
+void bochtlinksom(){
+
+
+ digitalWrite(dirPinR,HIGH); // voor
+  digitalWrite(dirPinL,HIGH); // achter 
+
+  for(int x = 0; x < 100; x++) {
+  
+   digitalWrite(stepPinR,HIGH); 
+   delayMicroseconds(3350);
+   digitalWrite(stepPinL,HIGH);
+   delayMicroseconds(1860);
+    
+    digitalWrite(stepPinL,LOW);  
+    delayMicroseconds(1660);
+
+
+    digitalWrite(stepPinR,LOW);  
+    delayMicroseconds(3350);
+  }
+
+}
+
+void bochtrechtsom(){
+
+digitalWrite(dirPinR,LOW); // voor
+ digitalWrite(dirPinL,LOW); // achter 
+
+  for(int x = 0; x < 100; x++) {
+  
+   digitalWrite(stepPinR,HIGH); 
+   delayMicroseconds(3350);
+   digitalWrite(stepPinL,HIGH);
+   delayMicroseconds(1860);
+    
+    digitalWrite(stepPinL,LOW);  
+    delayMicroseconds(1660);
+
+
+    digitalWrite(stepPinR,LOW);  
+    delayMicroseconds(3350);
+  }
+  
 }
 
 
