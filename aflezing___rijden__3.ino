@@ -34,14 +34,17 @@ NewPing links(trigPinL, echoPinL, afstand_max);
 NewPing rechts(trigPinR, echoPinR, afstand_max);
 NewPing achter(trigPinA, echoPinA, afstand_max);
 
-const int stepPin = 32; //36 
-const int dirPin = 28;  //38
-const int stepPin2 = 36; //36 
-const int dirPin2 = 38;  //38 
+const int stepPinR = 36; //36 
+const int dirPinR = 38;  //38
+const int stepPinL = 32; //36 
+const int dirPinL = 28;  //38
 long teller=0;
 long teller1=0;
-
+char toestand = 'r';
 int pos = 40;
+long teller_TOF=0;
+const int ledrood = 40;
+const int ledgroen = 42;
 void setup()
 {
   Serial.begin(9600);
@@ -74,10 +77,13 @@ pinMode(trigPinR, OUTPUT);
 pinMode(echoPinR, INPUT);
 
 
- pinMode(stepPin,OUTPUT); 
- pinMode(dirPin,OUTPUT);
- pinMode(stepPin2,OUTPUT); 
-pinMode(dirPin2,OUTPUT);
+ pinMode(stepPinR,OUTPUT); 
+  pinMode(dirPinR,OUTPUT);
+  pinMode(stepPinL,OUTPUT); 
+ pinMode(dirPinL,OUTPUT);
+ pinMode(ledgroen,OUTPUT);
+
+myservo.attach(46);
 
   
 }
@@ -85,7 +91,12 @@ pinMode(dirPin2,OUTPUT);
 
 void loop()
 {
-   teller++;
+
+switch( toestand){
+
+  
+case 'r' : 
+    teller++;
    teller1++;
    
    if (pos >= 125){
@@ -95,55 +106,108 @@ void loop()
    Servo_mem = 0;
    }
 
-rijden();
+    rijden();
 
- if (distanceL <= 7.94 &&  distanceL >=  7.40 ){ 
+  if (distanceL <= 7.94 &&  distanceL >=  7.40 ){ 
   //7.94 en 7.40 
+  
       cor_naarlinks();
 
   }
 
-  if (distanceL <= 6.90 && distanceL >= 6.60){  
-      //6.60 en 6.90
-       cor_naarrechts();
-
-  }
+    if (distanceL <= 6.90 && distanceL >= 6.60){  
+        //6.60 en 6.90
+         cor_naarrechts();
+  
+    }
   
     
 
-   if (teller == 4){
-    US_links();
-    teller = 0;
-   }
+     if (teller == 4){
+      US_links();
+      teller = 0;
+     }
         
    
     if( teller1 == 2 && Servo_mem == 0 ){
-         meet_TOF();
+        US_voor();
+         meet_TOF(toestand);
          pos = pos + 20;
+         myservo.write(pos);
          teller1=0;
-         US_voor();
                   }
     
-    if ( teller1 == 2 && Servo_mem == 1 ){
-        US_voor();
-        meet_TOF();
-        pos = pos - 20;
-       teller1=0;
+      if ( teller1 == 2 && Servo_mem == 1 ){
+          US_voor();
+          meet_TOF(toestand);
+          pos = pos - 20;
+          myservo.write(pos);
+          teller1=0;
+  
+          }break;
 
-        }}
+  case 'T':
+
+digitalWrite(dirPinR,HIGH); 
+digitalWrite(dirPinL,LOW); 
+ for(int x = 0; x < 150; x++) {
+  
+   digitalWrite(stepPinR,HIGH); 
+   delayMicroseconds(3350);
+   digitalWrite(stepPinL,HIGH);
+   delayMicroseconds(1860);
+    
+    digitalWrite(stepPinL,LOW);  
+    delayMicroseconds(1660);
+
+
+    digitalWrite(stepPinR,LOW);  
+    delayMicroseconds(3350);
+  }
+for (int x = 0 ; x <6; x++){
+digitalWrite(ledgroen,HIGH);
+delay(100);
+digitalWrite(ledgroen,LOW);
+delay(100);
+
+}
+ 
+
+toestand = 'r';
+
+
+break;
+
+  
+          }
+          
+          
+          
+          }
 
 
 
-void meet_TOF(){
- //Serial.print("  TOF      ");
+long meet_TOF(char toestand_TOF){
+ Serial.print("  TOF      ");
 
 
-//Serial.print(sensor.readRangeSingleMillimeters());
-//  if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+Serial.print(sensor.readRangeSingleMillimeters());
+  if (sensor.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
 
- // Serial.println();
+ Serial.println();
+ if ( sensor.readRangeSingleMillimeters() < 200 && sensor.readRangeSingleMillimeters() > 3){
+
+  toestand = 'T';
+Serial.println("bboeeoeooeoebe");
+Serial.print(toestand_TOF);
+
+  return toestand_TOF;
+ }
+ 
   
 }
+
+
 void US_links(){
 
 durationL = links.ping_median(iterations);
@@ -153,21 +217,22 @@ Serial.print(distanceL);
 
 }
 
-void cor_naarrechts(){
+void cor_naarlinks(){
 
- digitalWrite(dirPin,LOW); 
-  digitalWrite(dirPin2,HIGH); 
+ delay(10);
   
 for( int x = 0 ;x < 6; x++){
   
-digitalWrite(stepPin,HIGH); 
-delayMicroseconds(1000); //1000
-digitalWrite(stepPin2,HIGH);
-delayMicroseconds(4000); // 2800
-digitalWrite(stepPin,LOW);  
-delayMicroseconds(1000); //1600
-digitalWrite(stepPin2,LOW);  
-delayMicroseconds(4000); //2400
+
+digitalWrite(stepPinL,HIGH);
+delayMicroseconds(1000); // 2800
+digitalWrite(stepPinR,HIGH);
+delayMicroseconds(5000); // 2800
+
+digitalWrite(stepPinL,LOW);  
+delayMicroseconds(1000); //2400
+digitalWrite(stepPinR,LOW);
+delayMicroseconds(5000); // 2800
 }}
 
 void US_voor(){
@@ -175,38 +240,48 @@ durationV = voor.ping_median(iterations);
 distanceV = (durationV /2) * 0.034;
 
 Serial.print("\t");
-//Serial.print("voor:  ");
-//Serial.print(distanceV);
-}
-void cor_naarlinks(){
-  digitalWrite(dirPin,LOW); 
-  digitalWrite(dirPin2,HIGH); 
+Serial.print("voor:  ");
+Serial.println(distanceV);
+
+ }
+void cor_naarrechts(){
+  delay(10);
+   
 for( int x = 0 ;x < 6; x++){
-digitalWrite(stepPin,HIGH); 
-delayMicroseconds(4000); //1000
-digitalWrite(stepPin2,HIGH);
+digitalWrite(stepPinR,HIGH);
+delayMicroseconds(5000); // 2800
+
+digitalWrite(stepPinL,HIGH);
 delayMicroseconds(1000); // 2800
-digitalWrite(stepPin,LOW);  
-delayMicroseconds(4000); //1600
-digitalWrite(stepPin2,LOW);  
+
+digitalWrite(stepPinR,LOW);  
+delayMicroseconds(5000); //2400
+digitalWrite(stepPinL,LOW);  
 delayMicroseconds(1000); //2400
+
 }}
 
 void rijden(){
-  
-  
-for( int x = 0 ;x < 20; x++){
-digitalWrite(stepPin,HIGH); 
-delayMicroseconds(1000); //1000
-digitalWrite(stepPin2,HIGH);
-delayMicroseconds(2800); // 2800
-digitalWrite(stepPin,LOW);  
-delayMicroseconds(1600); //1600
-digitalWrite(stepPin2,LOW);  
-delayMicroseconds(2400); //2400
-}}
 
+
+ digitalWrite(dirPinR,HIGH); 
+  digitalWrite(dirPinL,LOW); 
+
+  for(int x = 0; x < 20; x++) {
   
+   digitalWrite(stepPinR,HIGH); 
+   delayMicroseconds(3350);
+   digitalWrite(stepPinL,HIGH);
+   delayMicroseconds(1860);
+    
+    digitalWrite(stepPinL,LOW);  
+    delayMicroseconds(1660);
+
+
+    digitalWrite(stepPinR,LOW);  
+    delayMicroseconds(3350);
+  }
+}
 
 
 
