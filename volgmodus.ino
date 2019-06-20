@@ -192,7 +192,7 @@ switch (range){
     //draaien links
     }
   }
-  break;
+  break;*/
   case 1: //persoon kwijt
   /*if(distanceL > 6 && distanceL < 14){
     //draaienlinks
@@ -202,8 +202,8 @@ switch (range){
   if(distanceR > 6 && distanceR < 14){
     //draaienrechts
   }
-  
-  break;*/
+  */
+  break;
   case 2: //persoon rechts
   break;
   
