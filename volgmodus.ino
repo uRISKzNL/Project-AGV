@@ -161,17 +161,6 @@ distanceL = (durationL /2) * 0.034;
 durationR = rechts.ping_median(iterations);
 distanceR= (durationR /2) * 0.034;
 
-//correctiestatements
-if (distanceL <= 7.94 &&  distanceL >=  7.40 ){ 
-  //7.94 en 7.40 
-      cor_naarlinks();
-    }
-  
-if (distanceL <= 6.90 && distanceL >= 6.60){  
-  //6.60 en 6.90
-      cor_naarrechts();
-  
-    }
 
 if(distanceV > 6 && distanceV < 14){
   range = 0;
@@ -186,6 +175,17 @@ switch (range){
   case 0: //persoon voor je
   myservo.write(90);
   rijden();
+  //correctiestatements
+  if (distanceL <= 7.94 &&  distanceL >=  7.40 ){ 
+    //7.94 en 7.40 
+      cor_naarlinks();
+    }
+  
+  if (distanceL <= 6.90 && distanceL >= 6.60){  
+    //6.60 en 6.90
+      cor_naarrechts();
+  
+    }
   /*if(distanceL>10 && distanceV>15){
     //6cm rijden
     if(distanceV<5){
